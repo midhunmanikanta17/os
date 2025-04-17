@@ -1,0 +1,51 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h> // For sleep function
+
+#define MAX_PORTS 3  // Maximum number of available ports
+
+// Semaphore to control the number of available ports
+sem_t available_ports;  
+
+// Function that simulates a process trying to open a port
+void* process(void* arg) {
+    int process_id = *((int*)arg);  // Get process ID
+
+    printf("Process %d trying to open a port...\n", process_id);
+
+    // Wait for an available port
+    sem_wait(&available_ports);  
+
+    printf("Process %d has opened a port!\n", process_id);
+    sleep(2);  // Simulate work (using the port) for 2 seconds
+
+    // Release the port (after using it)
+    printf("Process %d is closing the port...\n", process_id);
+    sem_post(&available_ports);  
+
+    return NULL;
+}
+
+int main() {
+    pthread_t threads[5];  // Array for 5 threads (5 processes)
+    int process_ids[5] = {1, 2, 3, 4, 5};  // Process IDs
+
+    // Initialize the semaphore with MAX_PORTS available ports
+    sem_init(&available_ports, 0, MAX_PORTS);
+
+    // Create threads (representing 5 processes)
+    for (int i = 0; i < 5; i++) {
+        pthread_create(&threads[i], NULL, process, (void*)&process_ids[i]);
+    }
+
+    // Wait for all threads to finish
+    for (int i = 0; i < 5; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    // Destroy the semaphore (good practice)
+    sem_destroy(&available_ports);
+
+    return 0;
+}

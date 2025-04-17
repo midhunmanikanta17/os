@@ -1,0 +1,78 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define FRAME_COUNT 3   // Number of frames in physical memory
+#define NUM_PAGES 6     // Total number of pages in logical memory
+
+// Function to simulate Paging
+void simulate_paging(int pages[], int n) {
+    int frames[FRAME_COUNT];  // Frames to hold the pages in memory
+    int pageFaults = 0;
+    int found;
+
+    // Initialize all frames to -1 (indicating no page is in memory)
+    for (int i = 0; i < FRAME_COUNT; i++) {
+        frames[i] = -1;
+    }
+
+    // Loop through the pages requested by the process
+    for (int i = 0; i < n; i++) {
+        int currentPage = pages[i];
+        found = 0;
+
+        // Check if the page is already in memory (page hit)
+        for (int j = 0; j < FRAME_COUNT; j++) {
+            if (frames[j] == currentPage) {
+                found = 1; // Page found in memory
+                break;
+            }
+        }
+
+        // If the page is not found in memory (page fault)
+        if (!found) {
+            printf("Page %d caused a page fault.\n", currentPage);
+            pageFaults++;
+
+            // Find the first empty frame to load the new page
+            int frameIndex = -1;
+            for (int j = 0; j < FRAME_COUNT; j++) {
+                if (frames[j] == -1) {
+                    frameIndex = j;
+                    break;
+                }
+            }
+
+            // If no empty frame, replace the first page in the frame (FIFO approach)
+            if (frameIndex == -1) {
+                frameIndex = 0; // Simple FIFO: Replace the first page
+            }
+
+            frames[frameIndex] = currentPage; // Load the new page into the selected frame
+        }
+
+        // Display the current state of frames (memory)
+        printf("Current Frames: ");
+        for (int j = 0; j < FRAME_COUNT; j++) {
+            if (frames[j] != -1) {
+                printf("%d ", frames[j]);
+            } else {
+                printf("- ");
+            }
+        }
+        printf("\n");
+    }
+
+    // Output total page faults
+    printf("\nTotal Page Faults: %d\n", pageFaults);
+}
+
+int main() {
+    // Example pages being accessed by the process
+    int pages[] = {1, 2, 3, 2, 4, 1};
+    int n = sizeof(pages) / sizeof(pages[0]);
+
+    // Simulate the Paging Technique
+    simulate_paging(pages, n);
+
+    return 0;
+}

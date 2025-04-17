@@ -1,0 +1,92 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>  // For sleep function
+
+#define MAX_PORTS 3  // Maximum number of available ports
+
+// Monitor structure to control port access
+typedef struct {
+    int available_ports;  // Tracks available ports
+    pthread_mutex_t lock; // Mutex to protect shared resource
+    pthread_cond_t cond;  // Condition variable to block/wake up processes
+} PortMonitor;
+
+// Initialize the monitor
+void init_monitor(PortMonitor* monitor) {
+    monitor->available_ports = MAX_PORTS;  // Set the number of available ports
+    pthread_mutex_init(&monitor->lock, NULL);  // Initialize mutex
+    pthread_cond_init(&monitor->cond, NULL);  // Initialize condition variable
+}
+
+// Acquire a port (if available)
+void acquire_port(PortMonitor* monitor) {
+    pthread_mutex_lock(&monitor->lock);  // Lock to ensure mutual exclusion
+
+    while (monitor->available_ports <= 0) {
+        // Wait if no ports are available
+        printf("No ports available, waiting...\n");
+        pthread_cond_wait(&monitor->cond, &monitor->lock);  // Wait for a port to be released
+    }
+
+    // Acquire a port
+    monitor->available_ports--;
+    printf("Port acquired! Remaining ports: %d\n", monitor->available_ports);
+
+    pthread_mutex_unlock(&monitor->lock);  // Unlock after accessing the resource
+}
+
+// Release a port (after use)
+void release_port(PortMonitor* monitor) {
+    pthread_mutex_lock(&monitor->lock);  // Lock to ensure mutual exclusion
+
+    // Release a port
+    monitor->available_ports++;
+    printf("Port released! Remaining ports: %d\n", monitor->available_ports);
+
+    pthread_cond_signal(&monitor->cond);  // Wake up any process waiting for a port
+
+    pthread_mutex_unlock(&monitor->lock);  // Unlock after accessing the resource
+}
+
+// Simulate a process trying to open and close a port
+void* process(void* arg) {
+    int process_id = *((int*)arg);  // Get the process ID
+
+    printf("Process %d trying to acquire a port...\n", process_id);
+
+    acquire_port(&monitor);  // Try to acquire a port
+
+    // Simulate using the port for 2 seconds
+    printf("Process %d using the port...\n", process_id);
+    sleep(2);
+
+    release_port(&monitor);  // Release the port
+
+    return NULL;
+}
+
+PortMonitor monitor;  // Global instance of the monitor
+
+int main() {
+    pthread_t threads[5];  // Array of 5 threads (representing 5 processes)
+    int process_ids[5] = {1, 2, 3, 4, 5};  // IDs for the processes
+
+    // Initialize the monitor (ports)
+    init_monitor(&monitor);
+
+    // Create threads (representing 5 processes)
+    for (int i = 0; i < 5; i++) {
+        pthread_create(&threads[i], NULL, process, (void*)&process_ids[i]);
+    }
+
+    // Wait for all threads to finish
+    for (int i = 0; i < 5; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    // Clean up (destroy mutex and condition variable)
+    pthread_mutex_destroy(&monitor.lock);
+    pthread_cond_destroy(&monitor.cond);
+
+    return 0;
+}

@@ -1,0 +1,60 @@
+#include <stdio.h>
+
+#define MAX_FRAMES 3
+
+void FIFO(int pages[], int n, int frames[], int frame_count) {
+    int page_faults = 0;
+    int next_frame = 0;
+
+    // Initialize frames with -1 to indicate empty frames
+    for (int i = 0; i < frame_count; i++) {
+        frames[i] = -1;
+    }
+
+    // Process each page in the page sequence
+    for (int i = 0; i < n; i++) {
+        int page = pages[i];
+        int found = 0;
+
+        // Check if the page is already in one of the frames
+        for (int j = 0; j < frame_count; j++) {
+            if (frames[j] == page) {
+                found = 1;  // Page is already in memory
+                break;
+            }
+        }
+
+        // If the page is not found, it's a page fault
+        if (!found) {
+            // Replace the page in the next available frame (FIFO)
+            frames[next_frame] = page;
+            next_frame = (next_frame + 1) % frame_count; // Move to the next frame
+
+            page_faults++;  // Increment page fault count
+        }
+
+        // Print current frame status
+        printf("Page %d: ", page);
+        for (int k = 0; k < frame_count; k++) {
+            if (frames[k] != -1)
+                printf("%d ", frames[k]);
+            else
+                printf("- "); // Empty frame
+        }
+        printf("\n");
+    }
+
+    printf("\nTotal page faults: %d\n", page_faults);
+}
+
+int main() {
+    int pages[] = {7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3};  // Example page sequence
+    int n = sizeof(pages) / sizeof(pages[0]);
+    int frame_count = 3;  // Number of frames
+
+    int frames[MAX_FRAMES];  // Array to store pages in memory
+
+    FIFO(pages, n, frames, frame_count);  // Run FIFO algorithm
+
+    return 0;
+}

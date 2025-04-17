@@ -1,0 +1,37 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h> // For sleep function
+
+// Function to be executed by the first thread
+void* task1(void* arg) {
+    for (int i = 1; i <= 5; i++) {
+        printf("Thread 1: Task %d\n", i);
+        sleep(1);  // Simulate some work by sleeping for 1 second
+    }
+    return NULL;
+}
+
+// Function to be executed by the second thread
+void* task2(void* arg) {
+    for (int i = 1; i <= 5; i++) {
+        printf("Thread 2: Task %d\n", i);
+        sleep(1);  // Simulate some work by sleeping for 1 second
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t thread1, thread2;  // Declare two thread variables
+
+    // Create two threads
+    pthread_create(&thread1, NULL, task1, NULL);  // Create thread1
+    pthread_create(&thread2, NULL, task2, NULL);  // Create thread2
+
+    // Wait for both threads to finish execution
+    pthread_join(thread1, NULL);  // Wait for thread1
+    pthread_join(thread2, NULL);  // Wait for thread2
+
+    printf("Both threads have finished execution.\n");
+    
+    return 0;
+}

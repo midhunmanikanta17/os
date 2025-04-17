@@ -1,0 +1,56 @@
+#include <stdio.h>
+
+int main() {
+    int n, i, time_quantum, time = 0, completed = 0;
+    float total_wt = 0, total_tat = 0;
+
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    printf("Enter time quantum: ");
+    scanf("%d", &time_quantum);
+
+    int bt[n], remaining_bt[n], wt[n], tat[n];
+
+    // Input burst times and initialize remaining burst times
+    for (i = 0; i < n; i++) {
+        printf("Enter burst time for Process %d: ", i + 1);
+        scanf("%d", &bt[i]);
+        remaining_bt[i] = bt[i];
+        wt[i] = 0;  // Initialize waiting time to 0
+        tat[i] = 0; // Initialize turnaround time to 0
+    }
+
+    // Round Robin scheduling
+    while (completed < n) {
+        for (i = 0; i < n; i++) {
+            if (remaining_bt[i] > 0) {
+                if (remaining_bt[i] > time_quantum) {
+                    time += time_quantum;
+                    remaining_bt[i] -= time_quantum;
+                } else {
+                    time += remaining_bt[i];
+                    wt[i] = time - bt[i];  // Calculate waiting time
+                    tat[i] = wt[i] + bt[i];  // Calculate turnaround time
+                    total_wt += wt[i];
+                    total_tat += tat[i];
+                    remaining_bt[i] = 0;
+                    completed++;
+                }
+            }
+        }
+    }
+
+    // Output results
+    printf("\nProcess\tBurst\tWaiting\tTurnaround\n");
+    for (i = 0; i < n; i++) {
+        printf("P%d\t%d\t%d\t%d\n", i + 1, bt[i], wt[i], tat[i]);
+    }
+
+    printf("\nTotal Waiting Time: %.0f", total_wt);
+    printf("\nTotal Turnaround Time: %.0f", total_tat);
+    printf("\nAverage Waiting Time: %.2f", total_wt / n);
+    printf("\nAverage Turnaround Time: %.2f\n", total_tat / n);
+
+    return 0;
+}

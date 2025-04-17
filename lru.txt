@@ -1,0 +1,68 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define FRAME_COUNT 3  // Number of frames in memory
+#define PAGE_COUNT 8   // Number of pages to be accessed
+
+// Function to simulate the LRU page replacement algorithm
+void simulate_LRU(int pages[], int n) {
+    int frames[FRAME_COUNT];
+    int pageFaults = 0;
+    int isPageInMemory;
+
+    // Initialize the frames to -1 (indicating that no pages are in memory)
+    for (int i = 0; i < FRAME_COUNT; i++) {
+        frames[i] = -1;
+    }
+
+    // Loop through all pages
+    for (int i = 0; i < n; i++) {
+        int currentPage = pages[i];
+        isPageInMemory = 0;
+
+        // Check if the page is already in one of the frames (page hit)
+        for (int j = 0; j < FRAME_COUNT; j++) {
+            if (frames[j] == currentPage) {
+                isPageInMemory = 1;
+                break;
+            }
+        }
+
+        if (isPageInMemory) {
+            printf("Page %d is already in memory (No page fault).\n", currentPage);
+        } else {
+            // Page fault occurs, need to replace a page in memory
+            printf("Page %d causes a page fault.\n", currentPage);
+            pageFaults++;
+
+            // Shift pages to the right to simulate LRU and add the new page at the first position
+            for (int j = FRAME_COUNT - 1; j > 0; j--) {
+                frames[j] = frames[j - 1];
+            }
+
+            // Insert the new page into the first frame
+            frames[0] = currentPage;
+        }
+
+        // Display current state of memory frames
+        printf("Current Frames: ");
+        for (int j = 0; j < FRAME_COUNT; j++) {
+            printf("%d ", frames[j]);
+        }
+        printf("\n\n");
+    }
+
+    // Display total page faults
+    printf("Total page faults: %d\n", pageFaults);
+}
+
+int main() {
+    // Example pages being accessed
+    int pages[] = {7, 0, 1, 2, 0, 3, 0, 4};
+    int n = sizeof(pages) / sizeof(pages[0]);
+
+    // Simulate LRU page replacement
+    simulate_LRU(pages, n);
+
+    return 0;
+}
