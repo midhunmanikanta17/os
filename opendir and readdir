@@ -1,0 +1,23 @@
+#include <stdio.h>
+#include <dirent.h>
+
+int main() {
+    // Create a file
+    FILE *f = fopen("testfile.txt", "w");
+    if (f != NULL) {
+        fprintf(f, "This is a test file.\n");
+        fclose(f);
+    }
+
+    // Open current directory
+    DIR *d = opendir(".");
+    struct dirent *entry;
+
+    // Read and print files
+    while ((entry = readdir(d)) != NULL) {
+        printf("%s\n", entry->d_name);
+    }
+
+    closedir(d);
+    return 0;
+}
