@@ -1,0 +1,21 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+int main() {
+    pid_t pid = fork();
+
+    if (pid == 0) {
+        // Child process
+        printf("Child: PID = %d, Parent PID = %d\n", getpid(), getppid());
+        execl("/bin/ls", "ls", NULL);  // exec replaces this child process
+        perror("exec failed");
+    } else if (pid > 0) {
+        // Parent process
+        printf("Parent: PID = %d, Child PID = %d\n", getpid(), pid);
+    } else {
+        perror("fork failed");
+    }
+
+    return 0;
+}
