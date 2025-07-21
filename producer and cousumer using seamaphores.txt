@@ -1,57 +1,52 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
 #include <semaphore.h>
-#include <unistd.h>  // For sleep function
+#include <unistd.h>
+#include <time.h>
 
-#define MAX_BUFFER_SIZE 5
+#define SIZE 5     // Buffer size
+#define LIMIT 5    // Produce/Consume only 5 items
 
-// Shared buffer
-int buffer[MAX_BUFFER_SIZE];
-int in = 0;  // Points to the next available slot for the producer
-int out = 0; // Points to the next item for the consumer
+int buffer[SIZE];
+int in = 0, out = 0;
 
-// Semaphores
-sem_t empty;  // Number of empty slots in the buffer
-sem_t full;   // Number of filled slots in the buffer
+sem_t empty;  // Counts empty slots
+sem_t full;   // Counts filled slots
 sem_t mutex;  // For mutual exclusion
 
-// Producer function
-void* producer(void* param) {
-    int item;
-    while (1) {
-        item = rand() % 100;  // Random item to produce
-        sem_wait(&empty);      // Wait if there's no empty slot
-        sem_wait(&mutex);      // Enter critical section
+void* producer(void* arg) {
+    for (int i = 0; i < LIMIT; i++) {
+        int item = rand() % 100;
 
-        // Produce item and add to the buffer
+        sem_wait(&empty);
+        sem_wait(&mutex);
+
         buffer[in] = item;
         printf("Produced: %d\n", item);
-        in = (in + 1) % MAX_BUFFER_SIZE;
+        in = (in + 1) % SIZE;
 
-        sem_post(&mutex);      // Exit critical section
-        sem_post(&full);       // Signal that there's a new item in the buffer
+        sem_post(&mutex);
+        sem_post(&full);
 
-        sleep(1);  // Simulate time to produce an item
+        sleep(1);
     }
     return NULL;
 }
 
-// Consumer function
-void* consumer(void* param) {
-    int item;
-    while (1) {
-        sem_wait(&full);       // Wait if there's nothing to consume
-        sem_wait(&mutex);      // Enter critical section
+void* consumer(void* arg) {
+    for (int i = 0; i < LIMIT; i++) {
+        sem_wait(&full);
+        sem_wait(&mutex);
 
-        // Consume item from buffer
-        item = buffer[out];
+        int item = buffer[out];
         printf("Consumed: %d\n", item);
-        out = (out + 1) % MAX_BUFFER_SIZE;
+        out = (out + 1) % SIZE;
 
-        sem_post(&mutex);      // Exit critical section
-        sem_post(&empty);      // Signal that there's an empty slot available
+        sem_post(&mutex);
+        sem_post(&empty);
 
-        sleep(1);  // Simulate time to consume an item
+        sleep(1);
     }
     return NULL;
 }
@@ -59,20 +54,18 @@ void* consumer(void* param) {
 int main() {
     pthread_t prod, cons;
 
-    // Initialize semaphores
-    sem_init(&empty, 0, MAX_BUFFER_SIZE);  // Initially, buffer is empty
-    sem_init(&full, 0, 0);                 // No items in the buffer at the start
-    sem_init(&mutex, 0, 1);                // Mutex initialized to 1 (unlocked)
+    srand(time(NULL));  // Seed random
 
-    // Create producer and consumer threads
+    sem_init(&empty, 0, SIZE);
+    sem_init(&full, 0, 0);
+    sem_init(&mutex, 0, 1);
+
     pthread_create(&prod, NULL, producer, NULL);
     pthread_create(&cons, NULL, consumer, NULL);
 
-    // Join threads (in this case, the program runs forever)
     pthread_join(prod, NULL);
     pthread_join(cons, NULL);
 
-    // Destroy semaphores (optional)
     sem_destroy(&empty);
     sem_destroy(&full);
     sem_destroy(&mutex);
