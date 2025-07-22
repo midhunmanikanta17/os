@@ -1,12 +1,17 @@
 #include <stdio.h>
+
 int main() {
     int blocks[]   = {100, 500, 200, 300, 10000};  
     int procs[]    = {212, 417, 112, 100};      
     int m = 5, n = 4;
+
     int b1[5], b2[5], b3[5];
     for (int i = 0; i < m; i++)
         b1[i] = b2[i] = b3[i] = blocks[i];
+
     int ffit[4] = { -1, -1, -1, -1 };
+
+    // First Fit Allocation
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < m; j++) {
             if (b1[j] >= procs[i]) {
@@ -16,12 +21,35 @@ int main() {
             }
         }
     }
-printf("First Fit Allocation:\n");
-    for (int i = 0; i < n; i++)
-        if (ffit[i] != -1)
-            printf("  Process %d -> Block %d\n", i+1, ffit[i]+1);
-        else
-            printf("  Process %d -> Not Allocated\n", i+1);
 
-  return 0;
+    // Print Allocation Result
+    printf("First Fit Allocation:\n");
+    for (int i = 0; i < n; i++) {
+        if (ffit[i] != -1)
+            printf("  Process %d (%d KB) -> Block %d (%d KB left)\n", i + 1, procs[i], ffit[i] + 1, b1[ffit[i]]);
+        else
+            printf("  Process %d (%d KB) -> Not Allocated\n", i + 1, procs[i]);
+    }
+
+    // Gantt Chart Display
+    printf("\nGantt Chart:\n");
+    for (int i = 0; i < n; i++) {
+        printf("+------------");
+    }
+    printf("+\n");
+    
+    for (int i = 0; i < n; i++) {
+        if (ffit[i] != -1)
+            printf("| P%-2d -> B%-3d ", i + 1, ffit[i] + 1);
+        else
+            printf("| P%-2d -> NA   ", i + 1);
+    }
+    printf("|\n");
+
+    for (int i = 0; i < n; i++) {
+        printf("+------------");
+    }
+    printf("+\n");
+
+    return 0;
 }
