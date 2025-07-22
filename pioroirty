@@ -1,0 +1,99 @@
+#include <stdio.h>
+
+int main() {
+    int n, i, j;
+    float total_wt = 0, total_tat = 0;
+
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    int bt[n], wt[n], tat[n], p[n], priority[n];
+
+    // Input burst time and priority
+    for (i = 0; i < n; i++) {
+        printf("Enter burst time for Process %d: ", i + 1);
+        scanf("%d", &bt[i]);
+        printf("Enter priority for Process %d (lower = higher priority): ", i + 1);
+        scanf("%d", &priority[i]);
+        p[i] = i + 1; // Store process ID
+    }
+
+    // Sort processes by priority (ascending: lower value = higher priority)
+    for (i = 0; i < n - 1; i++) {
+        for (j = i + 1; j < n; j++) {
+            if (priority[i] > priority[j]) {
+                // Swap priority
+                int temp = priority[i];
+                priority[i] = priority[j];
+                priority[j] = temp;
+
+                // Swap burst time
+                temp = bt[i];
+                bt[i] = bt[j];
+                bt[j] = temp;
+
+                // Swap process number
+                temp = p[i];
+                p[i] = p[j];
+                p[j] = temp;
+            }
+        }
+    }
+
+    wt[0] = 0;  // First process has no waiting time
+
+    // Calculate waiting time
+    for (i = 1; i < n; i++) {
+        wt[i] = wt[i - 1] + bt[i - 1];
+        total_wt += wt[i];
+    }
+
+    // Calculate turnaround time
+    for (i = 0; i < n; i++) {
+        tat[i] = bt[i] + wt[i];
+        total_tat += tat[i];
+    }
+
+    // Output table
+    printf("\nProcess\tBurst\tPriority\tWaiting\tTurnaround\n");
+    for (i = 0; i < n; i++) {
+        printf("P%d\t%d\t%d\t\t%d\t%d\n", p[i], bt[i], priority[i], wt[i], tat[i]);
+    }
+
+    printf("\nTotal Waiting Time: %.0f", total_wt);
+    printf("\nTotal Turnaround Time: %.0f", total_tat);
+    printf("\nAverage Waiting Time: %.2f", total_wt / n);
+    printf("\nAverage Turnaround Time: %.2f\n", total_tat / n);
+
+    // Gantt Chart
+    printf("\nGantt Chart:\n");
+    
+    // Top border
+    for (i = 0; i < n; i++) {
+        printf(" --------");
+    }
+    printf("\n");
+
+    // Process labels
+    for (i = 0; i < n; i++) {
+        printf("|  P%-3d ", p[i]);
+    }
+    printf("|\n");
+
+    // Bottom border
+    for (i = 0; i < n; i++) {
+        printf(" --------");
+    }
+    printf("\n");
+
+    // Time markers
+    int time = 0;
+    printf("%d", time);
+    for (i = 0; i < n; i++) {
+        time += bt[i];
+        printf("\t%d", time);
+    }
+    printf("\n");
+
+    return 0;
+}
